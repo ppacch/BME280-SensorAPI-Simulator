@@ -55,9 +55,23 @@ class TestRegisterIdentity:
     def test_status_reset_to_0x00(self, sim: BME280Simulator) -> None:
         assert sim.read(C.REG_STATUS, 1)[0] == 0x00
 
-    def test_chip_id_is_read_only(self, sim: BME280Simulator) -> None:
+    def test_chip_id_write_zero_is_ignored(self, sim: BME280Simulator) -> None:
+        """Writing 0x00 to the read-only NVM register must have no effect (datasheet §5.4.1)."""
+        assert sim.read(C.REG_CHIP_ID, 1)[0] == C.CHIP_ID   # before
         sim.write(C.REG_CHIP_ID, [0x00])
-        assert sim.read(C.REG_CHIP_ID, 1)[0] == C.CHIP_ID
+        assert sim.read(C.REG_CHIP_ID, 1)[0] == C.CHIP_ID   # after
+
+    def test_chip_id_write_arbitrary_value_is_ignored(self, sim: BME280Simulator) -> None:
+        """Writing any arbitrary value to 0xD0 must not alter the chip ID."""
+        assert sim.read(C.REG_CHIP_ID, 1)[0] == C.CHIP_ID   # before
+        sim.write(C.REG_CHIP_ID, [0xFF])
+        assert sim.read(C.REG_CHIP_ID, 1)[0] == C.CHIP_ID   # after
+
+    def test_chip_id_write_same_value_is_ignored(self, sim: BME280Simulator) -> None:
+        """Writing the chip ID value itself to 0xD0 must also have no effect."""
+        assert sim.read(C.REG_CHIP_ID, 1)[0] == C.CHIP_ID   # before
+        sim.write(C.REG_CHIP_ID, [C.CHIP_ID])
+        assert sim.read(C.REG_CHIP_ID, 1)[0] == C.CHIP_ID   # after
 
     def test_calibration_registers_populated(self, sim: BME280Simulator) -> None:
         """Calibration NVM block must be non-zero after reset."""
