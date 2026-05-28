@@ -3,3 +3,9 @@ __pycache__/
 *.pyo
 .pytest_cache/
 .venv/
+
+# Local working files — not part of the project
+instructions.md
+git.txt
+prompts/
+.claude/
